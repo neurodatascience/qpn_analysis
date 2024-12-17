@@ -1,0 +1,89 @@
+{
+  "name": "Tractoflow",
+  "description": "Tractoflow is a pipeline for the processing of diffusion MRI data.",
+  "tool-version": "2.4.2",
+  "schema-version": "0.5",
+  "command-line": "run_tractoflow.py [GLOBAL_CONFIG] [SUBJECT_ID] [SESSION_ID] [OUTPUT_DIR] [USE_BIDS_FILTER] [DTI_SHELLS] [FODF_SHELLS] [SH_ORDER]",
+  "inputs": [
+	{
+	  "id": "GLOBAL_CONFIG",
+	  "name": "GLOBAL_CONFIG",
+	  "description": "Nipoppy config file containing global references.",
+	  "optional": false,
+	  "type": "String",
+	  "value-key": "[GLOBAL_CONFIG]"
+	},
+	{
+	  "id": "SUBJECT_ID",
+	  "name": "SUBJECT_ID",
+	  "description": "Participant BIDS ID to process through Tractoflow.",
+	  "optional": false,
+	  "type": "String",
+	  "value-key": "[SUBJECT_ID]"
+	},
+	{
+	  "id": "SESSION_ID",
+	  "name": "SESSION_ID",
+	  "description": "Participant BIDS session to process through Tractoflow.",
+	  "optional": false,
+	  "type": "String",
+	  "value-key": "[SESSION_ID]"
+	},
+	{
+	  "id": "OUTPUT_DIR",
+	  "name": "OUTPUT_DIR",
+	  "description": "The output directory for the Tractoflow processing.",
+	  "optional": false,
+	  "type": "String",
+	  "value-key": "[OUTPUT_DIR]"
+	},
+	{
+	  "id": "USE_BIDS_FILTER",
+	  "name": "USE_BIDS_FILTER",
+	  "description": "Apply a BIDS filter to select the files.",
+	  "optional": false,
+	  "type": "Boolean",
+	  "value-key": "[USE_BIDS_FILTER]"
+	},
+	{
+	  "id": "DTI_SHELLS",
+	  "name": "DTI_SHELLS",
+	  "description": "Select subset of shells for DTI modeling (optional)",
+	  "optional": true,
+	  "type": "String",
+	  "value-key": "[DTI_SHELLS]"
+	},
+	{
+	  "id": "FODF_SHELLS",
+	  "name": "FODF_SHELLS",
+	  "description": "Select subset of shells for FODF modeling (optional)",
+	  "optional": true,
+	  "type": "String",
+	  "value-key": "[FODF_SHELLS]"
+	},
+	{
+	  "id": "SH_ORDER",
+	  "name": "SH_ORDER",
+	  "description": "Max spherical harmonics order for FODF modeling (optional)",
+	  "optional": true,
+	  "type": "String",
+	  "value-key": "[SH_ORDER]"
+	}
+  ],
+  "tags": {},
+  "suggested-resources": {
+	"cpu-cores": 4,
+	"ram": 16,
+	"walltime-estimate": 43200
+  },
+  "custom": {
+	"nipoppy": {
+	  "CONTAINER_CONFIG": {
+		"ARGS": [
+		  "--bind",
+		  "[[NIPOPPY_DPATH_DERIVATIEVES]]/tractoflow"
+		]
+	  }
+	}
+  }
+}
