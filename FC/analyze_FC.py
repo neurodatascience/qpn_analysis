@@ -1,6 +1,7 @@
 import os
 import warnings
 
+import pickle
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -24,24 +25,24 @@ from nilearn import plotting
 # output_root = '/data/origami/mohammad/QPN/results'
 
 dataset = "qpn"
-current_release = "Jan_2024"
+current_release = "Oct_2024"
 session = "ses-01"
 
 dataset_dir = f"/home/nikhil/projects/Parkinsons/{dataset}/"
 release_dir = f"{dataset_dir}/releases/{current_release}"
 tabular_dir = f"{release_dir}/tabular/"
 
-FC_root = f"{release_dir}/derivatives/fmriprep/v23.1.3/IDP/"
+FC_root = f"{dataset_dir}/derivatives/fmriprep/v23.1.3/IDP/"
 
 # Current nipoppy manifest
 # manifest_path = f"{tabular_dir}/manifest.csv"
 
 # demographics
-manifest_path = f"{tabular_dir}/demographics.csv"
+dx_file_path = f"{tabular_dir}/assessments/diagnosis.csv"
 
 # save dirs
 output_root = f"{release_dir}/derivatives/fmriprep/v23.1.3/IDP/FC/results/"
-
+graph_prop_results_file = f"{output_root}/graph_prop_results.pkl"
 
 ### parameters
 session_id = 'ses-01'
@@ -60,18 +61,18 @@ brain_atlas_list = [
 ]
 
 manifest_id_key = "participant_id"
-manifest_diagnosis_key = 'group_at_screening'
-PD_label = "PD   (Parkinson's Disease)/Maladie de Parkinson"
-CTRL_label = "Healthy control/Contrôle"
+group_col = 'diagnosis_group_for_analysis'
+PD_label = "PD"
+CTRL_label = "control"
 
 metric = 'correlation' # correlation , covariance , precision
-graph_prop_list = ['degree', 'clustering_coef'] # Use ["degree" or "clustering_coef"] for the paper  #['degree', 'communicability', 'shortest_path', 'clustering_coef']
-graph_prop_threshold_list = list(np.arange(0.1, 1.1, 0.2)) #[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+graph_prop_list = ['degree', 'clustering_coef', 'shortest_path'] # Use ["degree" or "clustering_coef"] for the paper  #['degree', 'communicability', 'shortest_path', 'clustering_coef']
+graph_prop_threshold_list = [0.3] #[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
 reorder_conn_mat = False
 
 # plotting parameters
-make_FC_plots = True
+make_FC_plots = False
 make_pairwise_cat_plots = True
 save_image = True
 fix_lim = False # if True, the colorbar will be fixed to (-1, 1) for all plot_FC
@@ -164,8 +165,9 @@ def cat_plot(data,
             log_scale = False
 
         df = pd.DataFrame(data[key])
-        sns.violinplot(ax=axs[i], data=df, x=x, y=y, hue=hue, width=0.5, split=True, alpha=0.75, log_scale=log_scale, palette=palette)
-        sns.stripplot(ax=axs[i], data=df, x=x, y=y, hue=hue, alpha=1, dodge=True, legend=False, palette=palette)
+        # sns.violinplot(ax=axs[i], data=df, x=x, y=y, hue=hue, width=0.5, split=True, alpha=0.75, log_scale=log_scale, palette=palette)
+        sns.catplot(ax=axs[i], data=df, x=x, y=y, hue=hue, width=0.5, split=True, alpha=0.75, log_scale=log_scale, palette=palette)
+        # sns.stripplot(ax=axs[i], data=df, x=x, y=y, hue=hue, alpha=1, dodge=True, legend=False, palette=palette)
 
         axs[i].set(xlabel=None)
         axs[i].set(ylabel=None)
@@ -388,7 +390,7 @@ def calc_graph_propoerty(A, property, threshold=None, binarize=False):
 YEO_networks = ['Vis', 'SomMot', 'DorsAttn', 'SalVentAttn', 'Limbic', 'Cont','Default']
 
 # load description and demographics
-manifest = pd.read_csv(manifest_path)
+manifest = pd.read_csv(dx_file_path)
 
 ALL_RECORDS = os.listdir(f"{FC_root}/FC/output")
 ALL_RECORDS = [i for i in ALL_RECORDS if 'sub-' in i]
@@ -425,9 +427,9 @@ for brain_atlas in brain_atlas_list:
             segmented_FC = segment_FC(FC[metric], nodes=roi_labels_global, networks=YEO_networks)
             FC_lst.append(FC[metric])
             FC_segmented_lst.append(segmented_FC)
-            if manifest[manifest_diagnosis_key][participant_id_lst.index(participant_id)]==PD_label:
+            if manifest[group_col][participant_id_lst.index(participant_id)]==PD_label:
                 conditions.append("PD")
-            elif manifest[manifest_diagnosis_key][participant_id_lst.index(participant_id)]==CTRL_label:
+            elif manifest[group_col][participant_id_lst.index(participant_id)]==CTRL_label:
                 conditions.append("CTRL")
             else:
                 conditions.append("EXCLUDE")
@@ -466,7 +468,9 @@ for brain_atlas in brain_atlas_list:
     ## graph
     RESULTS = {}
     for threshold in graph_prop_threshold_list:
+        print(f"Calculating graph properties for threshold={threshold} ...")
         for i, property in enumerate(graph_prop_list):
+            print(f"Calculating graph properties for {property} ...")
 
             RESULTS[property] = {'values':list(), 'condition':list(), '':list()}
             for j, FC in enumerate(FC_lst):
@@ -488,13 +492,16 @@ for brain_atlas in brain_atlas_list:
                 RESULTS[property][''].append('')
                 if property=='degree':
                     RESULTS[property]['values'].append(np.max(features))  #'mean' is not good for FC degree
-                    print(f"using max to aggregate the graph properties: {property}")
+                    # print(f"using max to aggregate the graph properties: {property}")
                 else:
-                    print(f"using mean to aggregate the graph properties: {property}")
+                    # print(f"using mean to aggregate the graph properties: {property}")
+                    RESULTS[property]['values'].append(np.mean(features))
 
-                RESULTS[property]['values'].append(np.mean(features))
                 RESULTS[property]['condition'].append(conditions[j])
         try:
+            with open(graph_prop_results_file, 'wb') as fp:
+                pickle.dump(RESULTS, fp)
+                print(f'RESULTS saved successfully to file: {graph_prop_results_file}')
             cat_plot(
                 data=RESULTS, x='', y='values',
                 hue='condition',
