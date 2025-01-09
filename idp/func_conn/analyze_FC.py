@@ -9,21 +9,6 @@ import pandas as pd
 import seaborn as sns
 from nilearn import plotting
 
-# warnings.simplefilter('ignore')
-
-##########################################################################################
-
-### paths to files
-# # local
-# FC_root = '/Users/mte/Documents/McGill/JB/QPN/output'
-# manifest_path = '/Users/mte/Documents/McGill/JB/QPN/output/demographics.csv'
-# output_root = '/Users/mte/Documents/McGill/JB/QPN/result_outputs'
-
-# BIC
-# FC_root = '/data/origami/mohammad/QPN/output/'
-# manifest_path = '/data/pd/qpn/tabular/demographics/demographics.csv'
-# output_root = '/data/origami/mohammad/QPN/results'
-
 dataset = "qpn"
 current_release = "Oct_2024"
 session = "ses-01"
@@ -66,7 +51,7 @@ PD_label = "PD"
 CTRL_label = "control"
 
 metric = 'correlation' # correlation , covariance , precision
-graph_prop_list = ['degree', 'clustering_coef', 'shortest_path'] # Use ["degree" or "clustering_coef"] for the paper  #['degree', 'communicability', 'shortest_path', 'clustering_coef']
+graph_prop_list = ['degree', 'clustering_coef', 'shortest_path']
 graph_prop_threshold_list = [0.3] #[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
 reorder_conn_mat = False
