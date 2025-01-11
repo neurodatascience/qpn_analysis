@@ -7,35 +7,20 @@ name = "nipoppy"
 authors = [{ name = "nikhil153" }]
 version = "0.1.0"
 
-
 dependencies = [
     "pandas",
+    "matplotlib",
+    "seaborn",
     "numpy",
-    "joblib",
-    "pydicom",
     "nibabel",
-    "pybids",
-    "requests",
-]
-
-[project.optional-dependencies]
-test = ["pytest", "pytest-cov", "datalad"]
-
-# alias in case of typo
-tests = ["nipoppy[test]"]
-
-[tool.hatch.build.targets.wheel]
-packages = ["nipoppy"]
-
-[tool.hatch.build]
-include = [
-    "nipoppy/workflow/proc_pipe/tractoflow/tractoflow",
-    "nipoppy/workflow/proc_pipe/tractoflow",
+    "pathlib",
+    "json",
+    "statsmodels",
+    "enigmatoolbox"
 ]
 
 [tool.codespell]
-skip = '.git,.github,*.pdf,*.svg,pyproject.toml,*.ipynb,*.html,ppmi_imaging_descriptions.json'
-ignore-words-list = 'te,ines'
+skip = '.git,.github,*.pdf,*.svg,pyproject.toml,*.ipynb,*.html'
 
 [tool.pytest.ini_options]
 addopts = "-ra -q -vv --cov nipoppy"

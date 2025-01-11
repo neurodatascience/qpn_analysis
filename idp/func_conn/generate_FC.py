@@ -8,29 +8,57 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from nilearn import plotting
+import json
+from pathlib import Path
 
-dataset = "qpn"
-current_release = "Oct_2024"
+#################################################################
+
+local_config_f = Path('../../local_config.json')
+if local_config_f.exists():
+    with open(local_config_f) as f:
+        local_config = json.load(f)
+else:
+    print(f'Specify a local_config.json with path to nipoppy DATASET_DIR')
+
+print('local_config:', local_config)
+
+dataset_dir = local_config['DATASET_DIR']
+current_release = local_config['DATASET_RELEASE']
+
+pipeline = "fmriprep"
+pipeline_version = "23.1.3"
 session = "ses-01"
 
-dataset_dir = f"/home/nikhil/projects/Parkinsons/{dataset}/"
-release_dir = f"{dataset_dir}/releases/{current_release}"
-tabular_dir = f"{release_dir}/tabular/"
-
-FC_root = f"{dataset_dir}/derivatives/fmriprep/v23.1.3/IDP/"
-
 # Current nipoppy manifest
-# manifest_path = f"{tabular_dir}/manifest.csv"
+manifest_csv = f"{dataset_dir}/manifest.csv"
+
+# tabular data
+tabular_dir = f"{dataset_dir}/tabular/"
 
 # demographics
-dx_file_path = f"{tabular_dir}/assessments/diagnosis.csv"
+demographics_csv = f"{tabular_dir}/demographics.csv"
 
-# save dirs
-output_root = f"{release_dir}/derivatives/fmriprep/v23.1.3/IDP/FC/results/"
-graph_prop_results_file = f"{output_root}/graph_prop_results.pkl"
+# Dx
+dx_csv = f"{tabular_dir}/assessments/diagnosis.csv"
+
+mri_sessions_csv = f"{tabular_dir}/mri_info/mri_sessions.csv"
+
+# derivative data
+derivatives_dir = f"{dataset_dir}/derivatives/"
+
+# IDPs
+idp_dir = f"{derivatives_dir}/{pipeline}/{pipeline_version}/idp/"
+
+# FC
+fmriprep_extract_dir = f"{idp_dir}/{session}/FC/"
+
+# graph metrics
+graph_prop_results_dir = f"{idp_dir}/{session}/graph_props/"
+graph_prop_results_file = f"{graph_prop_results_dir}/graph_prop_results.pkl"
+
+#################################################################
 
 ### parameters
-session_id = 'ses-01'
 task = 'task-rest'
 space = 'space-MNI152NLin2009cAsym_res-2'
 brain_atlas_list = [
@@ -151,7 +179,7 @@ def cat_plot(data,
 
         df = pd.DataFrame(data[key])
         # sns.violinplot(ax=axs[i], data=df, x=x, y=y, hue=hue, width=0.5, split=True, alpha=0.75, log_scale=log_scale, palette=palette)
-        sns.catplot(ax=axs[i], data=df, x=x, y=y, hue=hue, width=0.5, split=True, alpha=0.75, log_scale=log_scale, palette=palette)
+        sns.catplot(ax=axs[i], data=df, x=x, y=y, hue=hue, split=True, alpha=0.75, log_scale=log_scale, palette=palette)
         # sns.stripplot(ax=axs[i], data=df, x=x, y=y, hue=hue, alpha=1, dodge=True, legend=False, palette=palette)
 
         axs[i].set(xlabel=None)
@@ -375,9 +403,9 @@ def calc_graph_propoerty(A, property, threshold=None, binarize=False):
 YEO_networks = ['Vis', 'SomMot', 'DorsAttn', 'SalVentAttn', 'Limbic', 'Cont','Default']
 
 # load description and demographics
-manifest = pd.read_csv(dx_file_path)
+manifest = pd.read_csv(dx_csv)
 
-ALL_RECORDS = os.listdir(f"{FC_root}/FC/output")
+ALL_RECORDS = os.listdir(fmriprep_extract_dir)
 ALL_RECORDS = [i for i in ALL_RECORDS if 'sub-' in i]
 ALL_RECORDS.sort()
 SUBJECTS = ALL_RECORDS
@@ -394,8 +422,8 @@ for brain_atlas in brain_atlas_list:
     for idx, subj in enumerate(SUBJECTS):
         participant_id = subj[4:] # remove 'sub-'
         if participant_id in participant_id_lst: # if the subject id is not in the manifest, it will be excluded
-            subj_dir = f"{FC_root}/FC/output/{subj}/{session_id}/"
-            FC_file = f"{subj_dir}/{subj}_{session_id}_{task}_{space}_FC_{brain_atlas}.npy"
+            subj_dir = f"{fmriprep_extract_dir}/{subj}/{session}/"
+            FC_file = f"{subj_dir}/{subj}_{session}_{task}_{space}_FC_{brain_atlas}.npy"
             FC = np.load(FC_file, allow_pickle='TRUE').item()
 
             # prepare the roi labels for visualization
@@ -430,7 +458,7 @@ for brain_atlas in brain_atlas_list:
             title='average_FC',
             reorder=reorder_conn_mat,
             fix_lim=fix_lim,
-            save_image=save_image, output_root=f"{output_root}/{brain_atlas}/"
+            save_image=save_image, output_root=f"{graph_prop_results_dir}/{brain_atlas}/"
         )
 
         plot_FC(
@@ -439,7 +467,7 @@ for brain_atlas in brain_atlas_list:
             title='segmented_average_FC',
             reorder=reorder_conn_mat,
             fix_lim=fix_lim,
-            save_image=save_image, output_root=f"{output_root}/{brain_atlas}/"
+            save_image=save_image, output_root=f"{graph_prop_results_dir}/{brain_atlas}/"
         )
 
     FC_dict = FC2dict(FC_lst=FC_segmented_lst, networks=YEO_networks, labels=conditions)
@@ -447,7 +475,7 @@ for brain_atlas in brain_atlas_list:
     if make_pairwise_cat_plots:
         pairwise_cat_plots(FC_dict, x='', y='FC', label='label',
             title='FC_distribution',
-            save_image=save_image, output_root=f"{output_root}/{brain_atlas}/"
+            save_image=save_image, output_root=f"{graph_prop_results_dir}/{brain_atlas}/"
             )
 
     ## graph
@@ -491,7 +519,7 @@ for brain_atlas in brain_atlas_list:
                 data=RESULTS, x='', y='values',
                 hue='condition',
                 title=f"graph-properties_threshold-{threshold}",
-                save_image=save_image, output_root=f"{output_root}/{brain_atlas}/"
+                save_image=save_image, output_root=f"{graph_prop_results_dir}/{brain_atlas}/"
             )
         # catch the error and display
         except Exception as e:
