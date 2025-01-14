@@ -1,0 +1,7 @@
+{
+  "global_config": "[[NIPOPPY_FPATH_GLOBAL_CONFIG]]",
+  "participant_id": "[[NIPOPPY_PARTICIPANT_ID]]",
+  "session_id": "[[NIPOPPY_SESSION_ID]]",
+  "output_dir": "[[NIPOPPY_DPATH_PIPELINE_OUTPUT]]",
+  "use_bids_filter": "true"
+}
