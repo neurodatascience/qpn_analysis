@@ -16,7 +16,8 @@ dependencies = [
     "pathlib",
     "json",
     "statsmodels",
-    "enigmatoolbox"
+    "enigmatoolbox",
+    "ptitprince"
 ]
 
 [tool.codespell]
