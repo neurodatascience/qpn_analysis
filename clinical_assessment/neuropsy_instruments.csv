@@ -1,6 +1,6 @@
 instrument,norming_method
 Letter Fluency F (Raw score),
-Trail A Errors raw score ,Scaled score
+Trail A Errors raw score,Scaled score
 "Trial total 1,2,3 (Raw score)",zscore
 Immediate recall raw,Using regression formula
 Stroop - D-Kefs - Cond.1: Total errors (Raw score),
@@ -26,7 +26,7 @@ Delayed recall raw,Using regression formula
 Delayed recall time (sec),
 Trial 2 raw,
 Stroop - D-Kefs - Cond.2 WORDS: Time (sec) (Raw score),Scaled score
-Digit Span Forward - total correct (Raw score) ,Scaled score
+Digit Span Forward - total correct (Raw score),Scaled score
 Stroop - D-Kefs - Cond.3 - INK: Time (sec) (Raw score),Scaled score
 Deux mains (30 sec),
 Stroop - D-Kefs - Cond. 3 - 1 (time),
@@ -44,7 +44,7 @@ Copy Clock raw (max 10),zscore
 "Stroop GOLDEN, ink, uncorrected errors (raw score)",
 Semantic Fluency Total (Raw score),
 "Intrusions total 1,2,3 (Raw score)",
-Digit span backward - longest correct serie (Raw score)  ,zscore
+Digit span backward - longest correct serie (Raw score),zscore
 Stroop - D-Kefs - Cond.3: Total errors (Raw score),Scaled score
 Stroop - D-Kefs - Cond.2: uncorrected errors (Raw score),
 Stroop - D-Kefs - Cond.3: self-corrected errors (Raw score),
